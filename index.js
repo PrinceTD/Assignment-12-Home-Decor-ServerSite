@@ -1,5 +1,6 @@
 const express = require('express')
 const { MongoClient } = require('mongodb');
+const ObjectId =require('mongodb').ObjectId
 require('dotenv').config()
 const app = express()
 const cors = require('cors');
@@ -16,9 +17,35 @@ async function run() {
     try {
         await client.connect();
         const database = client.db("load_products")
-        const appointmentsCollection = database.collection('product');
+        const productCollection = database.collection('product');
 
-        //    post api 
+        // GET Product
+        app.get('/product', async (req, res) => {
+            const cursor = productCollection.find({});
+            const product = await cursor.toArray();
+            res.send(product)
+        });
+
+        // Get single service
+        app.get("/product/:id", async(req, res)=>{
+            const id = req.params.id;
+            console.log("hitting  service id", id);
+            const query ={_id: ObjectId(id)};
+            const product = await productCollection.findOne(query)
+            res.json(product);
+        })
+
+        // // post api
+        // app.post("/product", async (req, res) => {
+        //     const product = req.body;
+        //     console.log("hit the post", product);
+
+        //     const result = await travelCollection.insertOne(product);
+        //     console.log(result);
+
+        //     res.json(result)
+        // })
+
 
     }
     finally {
