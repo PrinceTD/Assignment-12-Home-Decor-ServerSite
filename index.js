@@ -19,12 +19,28 @@ async function run() {
         const database = client.db("load_products")
         const productCollection = database.collection('product');
         const userCollection = database.collection('users')
+        const reviews = database.collection("review");
+        const orders = database.collection("all_orders");
 
         // GET Product
         app.get('/product', async (req, res) => {
             const cursor = productCollection.find({});
             const product = await cursor.toArray();
             res.json(product)
+        });
+
+        app.post("/product", async (req, res) => {
+            const product = req.body;
+            console.log(product);
+            const result = await productCollection.insertOne(product);
+
+            res.send(result);
+        });
+        app.delete("/product/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const product = await productCollection.deleteOne(query);
+            res.json(product);
         });
 
 
@@ -48,7 +64,29 @@ async function run() {
             res.json({ admin: isAdmin });
 
         })
-
+        app.post("/orders", async (req, res) => {
+            const order = req.body;
+            const result = await orders.insertOne(order);
+            res.send(result);
+        });
+        app.get("/orders", async (req, res) => {
+            const allOrders = orders.find({});
+            const result = await allOrders.toArray();
+            res.json(result);
+        });
+        app.get("/orders/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const allOrders = orders.find(query);
+            const result = await allOrders.toArray();
+            res.json(result);
+        });
+        app.delete("/orders/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = orders.deleteOne(query);
+            res.json(result);
+        });
 
 
         app.post('/users', async (req, res) => {
@@ -67,9 +105,21 @@ async function run() {
             res.json(result);
         });
 
+        app.get("/review", async (req, res) => {
+            const allReviews = reviews.find({});
+            const result = await allReviews.toArray();
+            res.json(result);
+        });
+        app.post("/review", async (req, res) => {
+            const order = req.body;
+            const result = await reviews.insertOne(order);
+            res.send(result);
+        });
+
+
         app.put('/users/admin', async (req, res) => {
             const user = req.body;
-           
+
             const filter = { email: user.email };
             const updateDoc = { $set: { role: 'admin' } };
             const result = await userCollection.updateOne(filter, updateDoc)
